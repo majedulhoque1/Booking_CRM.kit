@@ -55,10 +55,14 @@ security definer
 set search_path = public
 as $$
   select
+    -- Brand tokens are anchored to a domain-label boundary ((^|.) before, . or end after)
+    -- so they match a real host label, not a substring: combing.com is NOT 'bing',
+    -- netflix.com/box.com are NOT 'x.com', att.com is NOT 't.co'.
     case
       when e.referrer_host is null or e.referrer_host = '' then 'direct'
-      when e.referrer_host ~* '(google|bing|yahoo|duckduckgo|ecosia)\.' then 'search'
-      when e.referrer_host ~* '(facebook|instagram|t\.co|twitter|x\.com|linkedin|youtube|whatsapp|tiktok)' then 'social'
+      when e.referrer_host ~* '(^|\.)(google|bing|yahoo|duckduckgo|ecosia)\.' then 'search'
+      when e.referrer_host ~* '(^|\.)(facebook|instagram|twitter|linkedin|youtube|whatsapp|tiktok)\.'
+        or e.referrer_host ~* '(^|\.)(t\.co|x\.com)(\.|$)' then 'social'
       else 'referral'
     end as source,
     e.referrer_host,
