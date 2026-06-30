@@ -18,7 +18,7 @@ role key and notification secrets live only in the deploy environment. Set these
 
 | Var | Purpose |
 |---|---|
-| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | same project; admin auth + RPC calls |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | same project; admin auth + RPC calls. The admin client also accepts `VITE_SUPABASE_PUBLISHABLE_KEY` as an alias for the anon key. |
 
 ## Edge function `send-notifications`
 
@@ -26,13 +26,14 @@ role key and notification secrets live only in the deploy environment. Set these
 |---|---|
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | drain `notification_outbox` |
 | `NOTIFY_PROVIDER` | which channel to send through (see matrix) |
+| `NOTIFY_BRAND` | optional — org name prefixed to lead-facing messages (e.g. "Angel Foundation: …") |
 | provider secret(s) | per the matrix below |
 
 ### `NOTIFY_PROVIDER` matrix
 
 | `NOTIFY_PROVIDER` | Required secret(s) | Notes |
 |---|---|---|
-| `sms_bd` | `SMS_API_KEY`, `SMS_SENDER_ID` | Bangladesh SMS gateway (the Angel default) |
+| `sms_bd` | `SMS_API_KEY`, `SMS_SENDER_ID` (+ optional `SMS_API_URL`) | Bangladesh SMS gateway (the Angel default). `SMS_API_URL` overrides the default BulkSMSBD endpoint for another GET-style gateway. |
 | `twilio` | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` | SMS/voice |
 | `whatsapp` | `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` | WhatsApp Cloud API |
 | `webhook` | `NOTIFY_WEBHOOK_URL` | POSTs the payload; you wire delivery |
