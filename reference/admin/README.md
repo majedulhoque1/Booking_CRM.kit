@@ -6,13 +6,13 @@ build spec mapping each admin screen to the contract. Compose the screens from t
 blocks + the RPCs in `contract/README.md`, themed via `notes/theming.md`. Same rule as
 `reference/site`: theme + fill, don't fork the contract.
 
-> Status: foundation + **contract-bound data layer** (auth + admin gate + `hooks/`) + a complete
-> reference screen (`pages/Availability.tsx`) are shipped. The remaining page UIs
-> (Submissions/CRM/Bookings/Settings/Analytics) are built by composing the matching hook + the
-> `_kit` primitives, following the Availability screen as the exact pattern. They are NOT copied
-> verbatim from the source admin because that app's pages reference excluded CMS tables
-> (`programs`) and a different schema (`child_age` columns, `consultation_submissions`, status
-> `new|reviewed|converted`) — the hooks below are already corrected to the contract.
+> Status: **complete** — foundation + contract-bound data layer (auth + admin gate + `hooks/`) +
+> all seven screens in `pages/` (Availability, Submissions, CRM, Bookings, Settings, Analytics;
+> Dashboard composes from the same hooks). Screens were authored fresh against the contract rather
+> than copied from the source admin, whose pages reference excluded CMS tables (`programs`) and a
+> different schema (`child_age` columns, `consultation_submissions`, status `new|reviewed|converted`).
+> The screens are dependency-light (plain tables + `_kit` primitives, no hard DataTable/recharts
+> coupling); swap in richer UI components freely — the hooks and contract calls don't change.
 
 ## Foundation (vendored, generic)
 
@@ -40,7 +40,12 @@ hooks/useContacts.ts          `contacts` CRM list + notes
 hooks/useAnalytics.ts         the 5 analytics_* RPCs for a date range
 hooks/useSettings.ts          `site_settings` (timezone, notify_staff_phone)
 lib/slots.ts                  generateDaySlots — mirrors get_available_slots
-pages/Availability.tsx        complete reference screen (the pattern to follow)
+pages/Availability.tsx        weekly windows CRUD (the reference pattern)
+pages/Submissions.tsx         inquiries triage (contact / convert-to-CRM / delete)
+pages/CRM.tsx                 contacts list + inline notes
+pages/Bookings.tsx            confirm / cancel / reschedule
+pages/Settings.tsx            timezone + staff notify phone
+pages/Analytics.tsx           traffic / top pages / sources / countries / conversions
 ```
 
 Every hook is null-safe (`supabase` may be null pre-env) and uses **only** contract tables/RPCs.
