@@ -6,9 +6,13 @@ build spec mapping each admin screen to the contract. Compose the screens from t
 blocks + the RPCs in `contract/README.md`, themed via `notes/theming.md`. Same rule as
 `reference/site`: theme + fill, don't fork the contract.
 
-> Status: foundation + spec vendored. The data screens below are specified here (RPCs, gating,
-> building blocks) rather than shipped verbatim, because the source admin app entangles them with
-> client-specific CMS pages the kit deliberately excludes. Build each screen on the foundation.
+> Status: foundation + **contract-bound data layer** (auth + admin gate + `hooks/`) + a complete
+> reference screen (`pages/Availability.tsx`) are shipped. The remaining page UIs
+> (Submissions/CRM/Bookings/Settings/Analytics) are built by composing the matching hook + the
+> `_kit` primitives, following the Availability screen as the exact pattern. They are NOT copied
+> verbatim from the source admin because that app's pages reference excluded CMS tables
+> (`programs`) and a different schema (`child_age` columns, `consultation_submissions`, status
+> `new|reviewed|converted`) — the hooks below are already corrected to the contract.
 
 ## Foundation (vendored, generic)
 
@@ -23,9 +27,27 @@ components/ToastProvider.tsx · toast-context.ts · hooks/useToast.ts   toasts
 components/bookings/TimeGridCalendar.tsx   props-driven week/day time-grid (the booking calendar UI)
 ```
 
-External deps the consuming app supplies: a router, Supabase Auth context + a `ProtectedRoute`
-that checks session **and** `has_role(auth.uid(),'admin')`, shadcn/ui, recharts, lucide-react,
-and the theme tokens (`notes/theming.md`).
+## Auth + data layer (contract-bound, shipped)
+
+```
+context/AuthContext.tsx       Supabase Auth provider + useAuth() (null-safe when env unset)
+components/ProtectedRoute.tsx gates routes on session AND admin role
+hooks/useIsAdmin.ts           admin check via the user_roles self-read RLS policy
+hooks/useAvailability.ts      CRUD on `availability`
+hooks/useSubmissions.ts       `inquiries` (status new|contacted|closed) + convert-to-contact
+hooks/useBookings.ts          `bookings` confirm/cancel (fires notify trigger) + reschedule_booking RPC
+hooks/useContacts.ts          `contacts` CRM list + notes
+hooks/useAnalytics.ts         the 5 analytics_* RPCs for a date range
+hooks/useSettings.ts          `site_settings` (timezone, notify_staff_phone)
+lib/slots.ts                  generateDaySlots — mirrors get_available_slots
+pages/Availability.tsx        complete reference screen (the pattern to follow)
+```
+
+Every hook is null-safe (`supabase` may be null pre-env) and uses **only** contract tables/RPCs.
+
+External deps the consuming app supplies: a router (`react-router-dom` in the reference),
+`@tanstack/react-query`, shadcn-style `ui/` (Button, Modal, DataTable, FormField), recharts,
+lucide-react, and the theme tokens (`notes/theming.md`).
 
 ## Screen → contract mapping (build spec)
 
